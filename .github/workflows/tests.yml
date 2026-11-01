@@ -31,3 +31,31 @@ jobs:
       - run: alembic upgrade head
       - run: alembic check
       - run: pytest -q
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: cp .env.example .env
+      - run: docker compose up --build -d --wait
+      - run: npm ci
+        working-directory: client
+      - run: npm run build
+        working-directory: client
+      - run: npx playwright install --with-deps chromium
+        working-directory: client
+      - run: npm run test:e2e
+        working-directory: client
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-failure
+          path: client/test-results
+      - run: docker compose logs --tail=100
+        if: failure()
+      - run: docker compose down -v
+        if: always()
