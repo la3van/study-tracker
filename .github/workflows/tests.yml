@@ -32,7 +32,7 @@ jobs:
       - run: alembic check
       - run: pytest -q
   client:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
